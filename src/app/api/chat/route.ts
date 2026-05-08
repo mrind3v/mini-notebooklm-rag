@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 ${contextParts.join("\n\n")}`;
 
     const response = await client.chat.completions.create({
-      model: "openai/gpt-4.1-nano",
+      model: "openai/gpt-5-nano",
       messages: [
         {
           role: "system",
