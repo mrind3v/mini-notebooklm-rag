@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PineconeStore } from "@langchain/pinecone";
 import { embeddings } from "@/lib/langchain";
-import { getNamespacedIndex } from "@/lib/pinecone";
+import { pineconeIndex } from "@/lib/pinecone";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { Document } from "@langchain/core/documents";
 
@@ -42,12 +42,10 @@ export async function POST(req: NextRequest) {
     const docs = await textSplitter.splitDocuments([rawDoc]);
     console.log(`Split into ${docs.length} chunks.`);
 
-    // Use namespaced index for session isolation
-    const namespacedIndex = getNamespacedIndex(sessionId);
-
     console.log("Starting Pinecone indexing...");
     await PineconeStore.fromDocuments(docs, embeddings, {
-      pineconeIndex: namespacedIndex,
+      pineconeIndex: pineconeIndex,
+      namespace: sessionId,
       maxConcurrency: 5,
     });
     console.log("Pinecone indexing completed.");

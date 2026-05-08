@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PineconeStore } from "@langchain/pinecone";
 import { embeddings } from "@/lib/langchain";
-import { getNamespacedIndex } from "@/lib/pinecone";
+import { pineconeIndex } from "@/lib/pinecone";
 import OpenAI from "openai";
 
 export const maxDuration = 60;
@@ -24,11 +24,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Use namespaced index for session isolation
-    const namespacedIndex = getNamespacedIndex(sessionId);
-
     const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
-      pineconeIndex: namespacedIndex,
+      pineconeIndex: pineconeIndex,
+      namespace: sessionId,
     });
 
     const retriever = vectorStore.asRetriever({
