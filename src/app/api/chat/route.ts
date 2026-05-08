@@ -29,8 +29,9 @@ export async function POST(req: NextRequest) {
       namespace: sessionId,
     });
 
+    // Increase k to 10 for better context, especially for summaries
     const retriever = vectorStore.asRetriever({
-      k: 5,
+      k: 10,
     });
 
     const searchedChunks = await retriever.invoke(query);

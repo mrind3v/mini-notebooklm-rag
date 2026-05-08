@@ -22,9 +22,16 @@ async function extractPdfText(file: File): Promise<string> {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
     const pageText = textContent.items
-      .map((item) => ("str" in item ? item.str : ""))
+      .map((item) => {
+        if ("str" in item) return item.str;
+        return "";
+      })
+      .filter((str) => str.trim().length > 0)
       .join(" ");
-    pages.push(`--- Page ${i} ---\n${pageText}`);
+
+    if (pageText.trim().length > 0) {
+      pages.push(`--- Page ${i} ---\n${pageText}`);
+    }
   }
 
   return pages.join("\n\n");

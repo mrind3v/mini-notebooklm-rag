@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     const textSplitter = new RecursiveCharacterTextSplitter({
       chunkSize: 1000,
-      chunkOverlap: 200,
+      chunkOverlap: 100,
     });
 
     console.log("Splitting document...");
