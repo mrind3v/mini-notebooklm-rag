@@ -21,13 +21,22 @@ async function extractPdfText(file: File): Promise<string> {
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item) => {
-        if ("str" in item) return item.str;
-        return "";
-      })
-      .filter((str) => str.trim().length > 0)
-      .join(" ");
+    let lastY;
+    let pageText = "";
+
+    for (const item of textContent.items) {
+      if (!("str" in item)) continue;
+
+      // item.transform[5] is the Y coordinate (vertical position)
+      if (lastY !== undefined && Math.abs(item.transform[5] - lastY) > 5) {
+        pageText += "\n";
+      } else if (pageText.length > 0 && !pageText.endsWith("\n")) {
+        pageText += " ";
+      }
+
+      pageText += item.str;
+      lastY = item.transform[5];
+    }
 
     if (pageText.trim().length > 0) {
       pages.push(`--- Page ${i} ---\n${pageText}`);
