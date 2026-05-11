@@ -20,7 +20,7 @@ export async function expandQuery(query: string): Promise<string> {
 
   try {
     const response = await client.chat.completions.create({
-      model: "openai/gpt-4o-mini",
+      model: "minimax/minimax-m2.5",
       messages: [
         {
           role: "system",
