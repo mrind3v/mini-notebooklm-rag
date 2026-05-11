@@ -110,13 +110,30 @@ ${contextParts.join("\n\n")}
       content: query,
     });
 
-    const response = await client.chat.completions.create({
+    const stream = await client.chat.completions.create({
       model: "openai/gpt-5-nano",
       messages,
+      stream: true,
     });
 
-    return NextResponse.json({
-      response: response.choices[0].message.content,
+    const encoder = new TextEncoder();
+    const readable = new ReadableStream({
+      async start(controller) {
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content || "";
+          if (content) {
+            controller.enqueue(encoder.encode(content));
+          }
+        }
+        controller.close();
+      },
+    });
+
+    return new NextResponse(readable, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+      },
     });
   } catch (error) {
     console.error("Chat error:", error);

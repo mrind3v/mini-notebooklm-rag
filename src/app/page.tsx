@@ -277,7 +277,10 @@ export default function Home() {
 
     const userMessage: ChatMessage = { role: "user", content: query };
     const newMessages = [...activeSession.messages, userMessage];
-    updateSessionMessages(activeSession.id, newMessages);
+
+    const assistantMessage: ChatMessage = { role: "assistant", content: "" };
+    updateSessionMessages(activeSession.id, [...newMessages, assistantMessage]);
+
     setQuery("");
     setLoading(true);
 
@@ -297,27 +300,33 @@ export default function Home() {
         }),
       });
 
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Request failed");
+      }
 
-      const assistantMessage: ChatMessage = {
-        role: "assistant",
-        content: data.response,
-      };
-      updateSessionMessages(activeSession.id, [
-        ...newMessages,
-        assistantMessage,
-      ]);
+      if (!res.body) throw new Error("No response body");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        fullResponse += chunk;
+        updateSessionMessages(activeSession.id, [
+          ...newMessages,
+          { role: "assistant", content: fullResponse },
+        ]);
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unknown error";
-      const errorMessage: ChatMessage = {
-        role: "assistant",
-        content: `⚠️ Error: ${message}`,
-      };
       updateSessionMessages(activeSession.id, [
         ...newMessages,
-        errorMessage,
+        { role: "assistant", content: `⚠️ Error: ${message}` },
       ]);
     } finally {
       setLoading(false);
