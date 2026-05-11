@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { useTheme } from "next-themes";
 import { parseDocument, getFileType } from "@/lib/documentParser";
 import MarkdownMessage from "@/components/MarkdownMessage";
 import type { ChatSession, ChatMessage } from "@/lib/types";
@@ -93,9 +94,34 @@ function ChevronLeftIcon() {
   );
 }
 
+function SunIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────────────────────────
 
 export default function Home() {
+  const { theme, setTheme } = useTheme();
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -103,9 +129,15 @@ export default function Home() {
   const [uploadProgress, setUploadProgress] = useState("");
   const [query, setQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
   // Load sessions from localStorage on mount
   useEffect(() => {
     const loaded = loadSessions();
@@ -117,6 +149,7 @@ export default function Home() {
       setActiveSessionId(loaded[0].id);
     }
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Save sessions whenever they change
   useEffect(() => {
@@ -336,21 +369,21 @@ export default function Home() {
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0a0a0f]">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-[#0a0a0f]">
       {/* Sidebar */}
       <aside
         className={`${
           sidebarOpen ? "w-72" : "w-0"
-        } transition-all duration-300 ease-in-out overflow-hidden flex-shrink-0 border-r border-white/[0.06] bg-[#0d0d14] flex flex-col`}
+        } transition-all duration-300 ease-in-out overflow-hidden flex-shrink-0 border-r border-gray-200 dark:border-white/[0.06] bg-white dark:bg-[#0d0d14] flex flex-col`}
       >
         {/* Sidebar Header */}
-        <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
-          <h1 className="text-base font-semibold text-white/90 tracking-tight whitespace-nowrap">
+        <div className="p-4 border-b border-gray-200 dark:border-white/[0.06] flex items-center justify-between">
+          <h1 className="text-base font-semibold text-gray-900 dark:text-white/90 tracking-tight whitespace-nowrap">
             📓 Mini-NotebookLM
           </h1>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-white/[0.06] text-white/40 hover:text-white/70 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.06] text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/70 transition-colors"
             aria-label="Close sidebar"
           >
             <ChevronLeftIcon />
@@ -361,7 +394,7 @@ export default function Home() {
         <div className="p-3">
           <button
             onClick={createNewSession}
-            className="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-dashed border-white/[0.12] text-white/60 hover:text-white/90 hover:border-violet-500/40 hover:bg-violet-500/[0.06] transition-all text-sm font-medium"
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-dashed border-gray-300 dark:border-white/[0.12] text-gray-500 dark:text-white/60 hover:text-gray-900 dark:hover:text-white/90 hover:border-violet-400/50 dark:hover:border-violet-500/40 hover:bg-violet-500/[0.04] dark:hover:bg-violet-500/[0.06] transition-all text-sm font-medium"
           >
             <PlusIcon />
             <span className="whitespace-nowrap">New Chat</span>
@@ -371,7 +404,7 @@ export default function Home() {
         {/* Session List */}
         <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1">
           {sessions.length === 0 && (
-            <p className="text-white/25 text-xs text-center mt-8 px-4">
+            <p className="text-gray-400 dark:text-white/25 text-xs text-center mt-8 px-4">
               No chats yet. Create one to get started.
             </p>
           )}
@@ -380,15 +413,15 @@ export default function Home() {
               key={session.id}
               className={`group flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-all text-sm ${
                 activeSessionId === session.id
-                  ? "bg-violet-500/[0.12] text-white/95 border border-violet-500/20"
-                  : "text-white/50 hover:bg-white/[0.04] hover:text-white/75 border border-transparent"
+                  ? "bg-violet-100 dark:bg-violet-500/[0.12] text-gray-900 dark:text-white/95 border border-violet-200 dark:border-violet-500/20"
+                  : "text-gray-500 dark:text-white/50 hover:bg-gray-100 dark:hover:bg-white/[0.04] hover:text-gray-700 dark:hover:text-white/75 border border-transparent"
               }`}
               onClick={() => setActiveSessionId(session.id)}
             >
               <div className="flex-1 min-w-0">
                 <p className="truncate font-medium">{session.name}</p>
                 {session.documents.length > 0 && (
-                  <p className="text-[11px] text-white/30 truncate mt-0.5 flex items-center gap-1">
+                  <p className="text-[11px] text-gray-400 dark:text-white/30 truncate mt-0.5 flex items-center gap-1">
                     <FileIcon />
                     {session.documents.length} doc
                     {session.documents.length !== 1 ? "s" : ""}
@@ -400,7 +433,7 @@ export default function Home() {
                   e.stopPropagation();
                   deleteSession(session.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-all flex-shrink-0"
+                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-500/20 text-gray-400 dark:text-white/30 hover:text-red-500 dark:hover:text-red-400 transition-all flex-shrink-0"
                 aria-label="Delete chat"
               >
                 <TrashIcon />
@@ -413,11 +446,11 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="h-14 border-b border-white/[0.06] flex items-center px-4 gap-3 flex-shrink-0 bg-[#0a0a0f]/80 backdrop-blur-xl">
+        <header className="h-14 border-b border-gray-200 dark:border-white/[0.06] flex items-center px-4 gap-3 flex-shrink-0 bg-white/80 dark:bg-[#0a0a0f]/80 backdrop-blur-xl">
           {!sidebarOpen && (
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-1.5 rounded-lg hover:bg-white/[0.06] text-white/40 hover:text-white/70 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.06] text-gray-400 dark:text-white/40 hover:text-gray-700 dark:hover:text-white/70 transition-colors"
               aria-label="Open sidebar"
             >
               <MenuIcon />
@@ -425,13 +458,13 @@ export default function Home() {
           )}
           {activeSession ? (
             <div className="flex items-center gap-3 min-w-0">
-              <h2 className="text-sm font-medium text-white/80 truncate">
+              <h2 className="text-sm font-medium text-gray-700 dark:text-white/80 truncate">
                 {activeSession.name}
               </h2>
               {activeSession.documents.length > 0 && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-500/[0.1] border border-violet-500/20 flex-shrink-0">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-100 dark:bg-violet-500/[0.1] border border-violet-200 dark:border-violet-500/20 flex-shrink-0">
                   <FileIcon />
-                  <span className="text-[11px] text-violet-300/80 font-medium">
+                  <span className="text-[11px] text-violet-600 dark:text-violet-300/80 font-medium">
                     {activeSession.documents.length} document
                     {activeSession.documents.length !== 1 ? "s" : ""}
                   </span>
@@ -439,49 +472,63 @@ export default function Home() {
               )}
             </div>
           ) : (
-            <h2 className="text-sm text-white/40">
+            <h2 className="text-sm text-gray-400 dark:text-white/40">
               Create a new chat to begin
             </h2>
           )}
 
-          {/* Upload Button in Header */}
-          {activeSession && (
-            <div className="ml-auto flex items-center gap-3">
-              {uploadProgress && (
-                <span
-                  className={`text-xs ${
-                    uploadProgress.startsWith("✗")
-                      ? "text-red-400"
-                      : uploadProgress.startsWith("✓")
-                      ? "text-emerald-400"
-                      : "text-white/40"
+          {/* Right side controls */}
+          <div className="ml-auto flex items-center gap-3">
+            {/* Theme Toggle */}
+            {mounted && (
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.06] text-gray-500 dark:text-white/50 hover:text-gray-700 dark:hover:text-white/80 transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+              </button>
+            )}
+
+            {/* Upload Button in Header */}
+            {activeSession && (
+              <>
+                {uploadProgress && (
+                  <span
+                    className={`text-xs ${
+                      uploadProgress.startsWith("✗")
+                        ? "text-red-500 dark:text-red-400"
+                        : uploadProgress.startsWith("✓")
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-gray-400 dark:text-white/40"
+                    }`}
+                  >
+                    {uploadProgress}
+                  </span>
+                )}
+                <label
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all ${
+                    uploading
+                      ? "bg-gray-100 dark:bg-white/[0.04] text-gray-400 dark:text-white/30 cursor-wait"
+                      : "bg-gray-100 dark:bg-white/[0.06] text-gray-600 dark:text-white/60 hover:bg-violet-100 dark:hover:bg-violet-500/[0.12] hover:text-violet-600 dark:hover:text-violet-300 border border-gray-200 dark:border-white/[0.08] hover:border-violet-300 dark:hover:border-violet-500/30"
                   }`}
                 >
-                  {uploadProgress}
-                </span>
-              )}
-              <label
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-all ${
-                  uploading
-                    ? "bg-white/[0.04] text-white/30 cursor-wait"
-                    : "bg-white/[0.06] text-white/60 hover:bg-violet-500/[0.12] hover:text-violet-300 border border-white/[0.08] hover:border-violet-500/30"
-                }`}
-              >
-                <UploadIcon />
-                <span className="whitespace-nowrap">
-                  {uploading ? "Processing..." : "Upload Document"}
-                </span>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.txt,.csv,.docx"
-                  onChange={handleUpload}
-                  disabled={uploading}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          )}
+                  <UploadIcon />
+                  <span className="whitespace-nowrap">
+                    {uploading ? "Processing..." : "Upload Document"}
+                  </span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.txt,.csv,.docx"
+                    onChange={handleUpload}
+                    disabled={uploading}
+                    className="hidden"
+                  />
+                </label>
+              </>
+            )}
+          </div>
         </header>
 
         {/* Chat Area */}
@@ -490,10 +537,10 @@ export default function Home() {
           <div className="flex-1 flex flex-col items-center justify-center px-6">
             <div className="text-center max-w-md">
               <div className="text-6xl mb-6">📓</div>
-              <h2 className="text-2xl font-semibold text-white/90 mb-3 tracking-tight">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white/90 mb-3 tracking-tight">
                 Mini-NotebookLM
               </h2>
-              <p className="text-white/40 text-sm mb-8 leading-relaxed">
+              <p className="text-gray-500 dark:text-white/40 text-sm mb-8 leading-relaxed">
                 Upload PDFs, DOCX, CSV, or text files and chat with your
                 documents. Each chat session keeps its documents separate.
               </p>
@@ -513,7 +560,7 @@ export default function Home() {
               <div className="max-w-3xl mx-auto space-y-5">
                 {activeSession.messages.length === 0 && (
                   <div className="text-center py-20">
-                    <p className="text-white/25 text-sm mb-2">
+                    <p className="text-gray-400 dark:text-white/25 text-sm mb-2">
                       {activeSession.documents.length === 0
                         ? "Upload a document to get started"
                         : "Ask a question about your documents"}
@@ -523,7 +570,7 @@ export default function Home() {
                         {activeSession.documents.map((doc, i) => (
                           <span
                             key={i}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-xs text-white/40"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.06] text-xs text-gray-500 dark:text-white/40"
                           >
                             <FileIcon />
                             {doc}
@@ -545,7 +592,7 @@ export default function Home() {
                       className={`max-w-[85%] ${
                         msg.role === "user"
                           ? "bg-violet-600/80 text-white px-4 py-3 rounded-2xl rounded-br-md"
-                          : "bg-white/[0.04] border border-white/[0.06] px-5 py-4 rounded-2xl rounded-bl-md"
+                          : "bg-white dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.06] px-5 py-4 rounded-2xl rounded-bl-md shadow-sm dark:shadow-none"
                       }`}
                     >
                       {msg.role === "assistant" ? (
@@ -559,14 +606,14 @@ export default function Home() {
 
                 {loading && (
                   <div className="flex justify-start">
-                    <div className="bg-white/[0.04] border border-white/[0.06] px-5 py-4 rounded-2xl rounded-bl-md">
+                    <div className="bg-white dark:bg-white/[0.04] border border-gray-200 dark:border-white/[0.06] px-5 py-4 rounded-2xl rounded-bl-md shadow-sm dark:shadow-none">
                       <div className="flex items-center gap-2">
                         <div className="flex gap-1">
                           <span className="w-2 h-2 rounded-full bg-violet-400/60 animate-bounce [animation-delay:0ms]" />
                           <span className="w-2 h-2 rounded-full bg-violet-400/60 animate-bounce [animation-delay:150ms]" />
                           <span className="w-2 h-2 rounded-full bg-violet-400/60 animate-bounce [animation-delay:300ms]" />
                         </div>
-                        <span className="text-xs text-white/30 ml-1">
+                        <span className="text-xs text-gray-400 dark:text-white/30 ml-1">
                           Thinking...
                         </span>
                       </div>
@@ -579,7 +626,7 @@ export default function Home() {
             </div>
 
             {/* Input Area */}
-            <div className="border-t border-white/[0.06] p-4 bg-[#0a0a0f]/80 backdrop-blur-xl">
+            <div className="border-t border-gray-200 dark:border-white/[0.06] p-4 bg-white/80 dark:bg-[#0a0a0f]/80 backdrop-blur-xl">
               <form
                 onSubmit={handleChat}
                 className="max-w-3xl mx-auto flex gap-3"
@@ -594,12 +641,12 @@ export default function Home() {
                       : "Ask about your documents..."
                   }
                   disabled={loading}
-                  className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white/90 placeholder:text-white/25 focus:outline-none focus:border-violet-500/40 focus:ring-1 focus:ring-violet-500/20 transition-all disabled:opacity-50"
+                  className="flex-1 bg-white dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.08] rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white/90 placeholder:text-gray-400 dark:placeholder:text-white/25 focus:outline-none focus:border-violet-400/50 dark:focus:border-violet-500/40 focus:ring-1 focus:ring-violet-500/20 transition-all disabled:opacity-50"
                 />
                 <button
                   type="submit"
                   disabled={loading || !query.trim()}
-                  className="px-4 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:bg-white/[0.06] disabled:text-white/20 text-white transition-all flex items-center gap-2 text-sm font-medium shadow-lg shadow-violet-500/10 disabled:shadow-none"
+                  className="px-4 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:bg-gray-200 dark:disabled:bg-white/[0.06] disabled:text-gray-400 dark:disabled:text-white/20 text-white transition-all flex items-center gap-2 text-sm font-medium shadow-lg shadow-violet-500/10 disabled:shadow-none"
                 >
                   <SendIcon />
                 </button>

@@ -1,6 +1,13 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+.dark {
   --background: #0a0a0f;
   --foreground: #ededed;
 }
@@ -30,11 +37,19 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 3px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
@@ -46,42 +61,80 @@ body {
 }
 
 .markdown-body .hljs {
-  color: #c9d1d9;
+  color: #24292e;
   background: transparent;
+}
+
+.dark .markdown-body .hljs {
+  color: #c9d1d9;
 }
 
 .markdown-body .hljs-keyword,
 .markdown-body .hljs-selector-tag,
 .markdown-body .hljs-literal {
+  color: #d73a49;
+}
+
+.dark .markdown-body .hljs-keyword,
+.dark .markdown-body .hljs-selector-tag,
+.dark .markdown-body .hljs-literal {
   color: #ff7b72;
 }
 
 .markdown-body .hljs-string,
 .markdown-body .hljs-title,
 .markdown-body .hljs-name {
+  color: #0969da;
+}
+
+.dark .markdown-body .hljs-string,
+.dark .markdown-body .hljs-title,
+.dark .markdown-body .hljs-name {
   color: #a5d6ff;
 }
 
 .markdown-body .hljs-number,
 .markdown-body .hljs-built_in {
+  color: #0550ae;
+}
+
+.dark .markdown-body .hljs-number,
+.dark .markdown-body .hljs-built_in {
   color: #79c0ff;
 }
 
 .markdown-body .hljs-comment {
-  color: #8b949e;
+  color: #6e7781;
   font-style: italic;
+}
+
+.dark .markdown-body .hljs-comment {
+  color: #8b949e;
 }
 
 .markdown-body .hljs-attr,
 .markdown-body .hljs-attribute {
+  color: #7c3aed;
+}
+
+.dark .markdown-body .hljs-attr,
+.dark .markdown-body .hljs-attribute {
   color: #d2a8ff;
 }
 
 .markdown-body .hljs-function {
+  color: #7c3aed;
+}
+
+.dark .markdown-body .hljs-function {
   color: #d2a8ff;
 }
 
 .markdown-body .hljs-params {
+  color: #24292e;
+}
+
+.dark .markdown-body .hljs-params {
   color: #c9d1d9;
 }
 
@@ -89,5 +142,9 @@ body {
 
 ::selection {
   background: rgba(139, 92, 246, 0.3);
+  color: inherit;
+}
+
+.dark ::selection {
   color: #fff;
 }
