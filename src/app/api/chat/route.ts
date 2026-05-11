@@ -3,12 +3,14 @@ import { PineconeStore } from "@langchain/pinecone";
 import { embeddings } from "@/lib/langchain";
 import { pineconeIndex } from "@/lib/pinecone";
 import OpenAI from "openai";
+import { expandQuery } from "@/lib/queryExpander";
+import { rerankChunks } from "@/lib/reranker";
 
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
-    const { query, sessionId } = await req.json();
+    const { query, sessionId, history } = await req.json();
 
     if (!query) {
       return NextResponse.json(
@@ -24,20 +26,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const expandedQuery = await expandQuery(query);
+
     const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
       pineconeIndex: pineconeIndex,
       namespace: sessionId,
     });
 
-    // Increase k to 10 for better context, especially for summaries
     const retriever = vectorStore.asRetriever({
-      k: 10,
+      k: 15,
     });
 
-    const searchedChunks = await retriever.invoke(query);
+    const searchedChunks = await retriever.invoke(expandedQuery);
+
+    const rerankedChunks = await rerankChunks(expandedQuery, searchedChunks, 5);
 
     // If no relevant chunks found, let the user know
-    if (searchedChunks.length === 0) {
+    if (rerankedChunks.length === 0) {
       return NextResponse.json({
         response:
           "No relevant documents found in this session. Please upload a document first.",
@@ -54,11 +59,20 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Build context from retrieved chunks with source info
-    const contextParts = searchedChunks.map((chunk, i) => {
+    // Build context from reranked chunks with source info
+    const contextParts = rerankedChunks.map((chunk, i) => {
       const source = chunk.metadata?.source || "unknown";
       return `[Chunk ${i + 1} from "${source}"]:\n${chunk.pageContent}`;
     });
+
+    // Build conversation history for context
+    const historyContext = history && history.length > 0
+      ? history
+          .map((msg: { role: string; content: string }) =>
+            `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
+          )
+          .join("\n")
+      : "";
 
     const system_prompt = `You are an intelligent AI research assistant for the "Mini-NotebookLM" application. Your job is to help users understand and analyze the documents they have uploaded.
 
@@ -75,18 +89,30 @@ ${contextParts.join("\n\n")}
 5. **Formatting:** Use clear Markdown (headings, lists, bolding) for readability.
 6. **Tone:** Professional, analytical, and helpful.`;
 
+    type MessageRole = "system" | "user" | "assistant";
+
+    const messages: { role: MessageRole; content: string }[] = [
+      {
+        role: "system",
+        content: system_prompt,
+      },
+    ];
+
+    if (historyContext) {
+      messages.push({
+        role: "user",
+        content: `Previous conversation:\n${historyContext}`,
+      });
+    }
+
+    messages.push({
+      role: "user",
+      content: query,
+    });
+
     const response = await client.chat.completions.create({
       model: "openai/gpt-5-nano",
-      messages: [
-        {
-          role: "system",
-          content: system_prompt,
-        },
-        {
-          role: "user",
-          content: query,
-        },
-      ],
+      messages,
     });
 
     return NextResponse.json({

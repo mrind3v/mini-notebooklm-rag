@@ -282,12 +282,18 @@ export default function Home() {
     setLoading(true);
 
     try {
+      const history = activeSession.messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      }));
+
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           query,
           sessionId: activeSession.id,
+          history,
         }),
       });
 
